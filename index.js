@@ -126,7 +126,6 @@ async function run() {
 
         //get all the bookings
         app.get('/bookings', async (req, res) => {
-            console.log('I am all bookings hit');
             const query = {}
             const cursor = bookingsCollection.find(query);
             const bookings = await cursor.toArray();
