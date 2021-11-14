@@ -169,6 +169,7 @@ async function run() {
             } else {
                 console.log("No documents matched the query. Deleted 0 documents.");
             }
+            res.json(result)
         })
 
         //update booking status
@@ -185,6 +186,7 @@ async function run() {
             console.log(
                 `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
             );
+            res.json(result)
         })
 
     } finally {
@@ -200,17 +202,3 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on Local Host:${port}`)
 })
-
-
-        //get filtered booking
-        // app.get('/bookings', async (req, res) => {
-        //     const email = req.query.email;
-        //     const query = { email: email }
-        //     const cursor = bookingsCollection.find(query);
-        //     const bookings = await cursor.toArray();
-        //     if ((cursor.count()) === 0) {
-        //         console.log("No documents found!");
-        //         res.json("No data Found");
-        //     }
-        //     res.json(bookings);
-        // });
