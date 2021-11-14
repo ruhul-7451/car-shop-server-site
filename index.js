@@ -22,6 +22,7 @@ async function run() {
         const reviewsCollection = database.collection("reviews");
         const bookingsCollection = database.collection("bookings");
         const usersCollection = database.collection("users");
+        const messagesCollection = database.collection("messages");
 
         //add user
         app.post('/users', async (req, res) => {
@@ -96,6 +97,19 @@ async function run() {
             res.json(result);
         });
 
+        //deleteCar
+        app.delete('/cars/find/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) };
+            const result = await carsCollection.deleteOne(query);
+            if (result.deletedCount === 1) {
+                console.log("Successfully deleted one document.");
+            } else {
+                console.log("No documents matched the query. Deleted 0 documents.");
+            }
+            res.json(result)
+        })
+
         //post a review
         app.post('/reviews', async (req, res) => {
             const doc = req.body
@@ -108,6 +122,26 @@ async function run() {
         app.get('/reviews', async (req, res) => {
             const query = {}
             const cursor = reviewsCollection.find(query);
+            if ((await cursor.count()) === 0) {
+                console.log("No documents found!");
+                res.send("No data Found");
+            }
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        //post a message
+        app.post('/messages', async (req, res) => {
+            const doc = req.body
+            const result = await messagesCollection.insertOne(doc);
+            console.log(`A document was inserted with the _id: ${result.insertedId}`);
+            res.send(result);
+        });
+
+        //get message
+        app.get('/messages', async (req, res) => {
+            const query = {}
+            const cursor = messagesCollection.find(query);
             if ((await cursor.count()) === 0) {
                 console.log("No documents found!");
                 res.send("No data Found");
