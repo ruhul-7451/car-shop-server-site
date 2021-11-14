@@ -58,6 +58,20 @@ async function run() {
             res.send(result);
         });
 
+        //get admin
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const user = await usersCollection.findOne(query)
+            console.log(user);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ admin: isAdmin });
+
+        })
+
         // create a document to insert
         app.post('/cars', async (req, res) => {
             const doc = req.body
@@ -97,6 +111,7 @@ async function run() {
             res.send(result);
         });
 
+        //get review
         app.get('/reviews', async (req, res) => {
             console.log('get reviews hit');
             const query = {}
@@ -114,22 +129,27 @@ async function run() {
             const query = { email: email }
             const cursor = bookingsCollection.find(query);
             const bookings = await cursor.toArray();
+            if ((cursor.count()) === 0) {
+                console.log("No documents found!");
+                res.json("No data Found");
+            }
             res.json(bookings);
-        });
-        app.get('/booking/:id', async (req, res) => {
-            const id = req.params.id
-            const query = { _id: ObjectId(id) };
-            const result = await bookingsCollection.findOne(query);
-            res.json(result);
         });
 
-        app.delete('/booking/:id', async (req, res) => {
-            const id = req.params.id
-            const query = { _id: ObjectId(id) };
-            const cursor = bookingsCollection.deleteOne({ query });
-            const bookings = await cursor.toArray();
-            res.json(bookings);
-        })
+        // app.get('/booking/:id', async (req, res) => {
+        //     const id = req.params.id
+        //     const query = { _id: ObjectId(id) };
+        //     const result = await bookingsCollection.findOne(query);
+        //     res.json(result);
+        // });
+
+        // app.delete('/booking/:id', async (req, res) => {
+        //     const id = req.params.id
+        //     const query = { _id: ObjectId(id) };
+        //     const cursor = bookingsCollection.deleteOne({ query });
+        //     const bookings = await cursor.toArray();
+        //     res.json(bookings);
+        // })
 
         app.post('/bookings', async (req, res) => {
             const doc = req.body
