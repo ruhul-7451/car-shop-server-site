@@ -26,7 +26,6 @@ async function run() {
         //add user
         app.post('/users', async (req, res) => {
             const doc = req.body
-            console.log(doc);
             const result = await usersCollection.insertOne(doc);
             console.log(`A document was inserted with the _id: ${result.insertedId}`);
             res.send(result);
@@ -47,8 +46,7 @@ async function run() {
 
         //make admin
         app.put('/users/admin', async (req, res) => {
-            const user = req.body
-            console.log('i am req body ', user);
+            const user = req.body;
             const filter = { email: user.email }
             const updateDoc = { $set: { role: 'admin' } };
             const result = await usersCollection.updateOne(filter, updateDoc);
@@ -63,19 +61,16 @@ async function run() {
             const email = req.params.email
             const query = { email: email }
             const user = await usersCollection.findOne(query)
-            console.log(user);
             let isAdmin = false;
             if (user?.role === 'admin') {
                 isAdmin = true;
             }
             res.json({ admin: isAdmin });
-
         })
 
         // create a document to insert
         app.post('/cars', async (req, res) => {
-            const doc = req.body
-            console.log(doc);
+            const doc = req.body;
             const result = await carsCollection.insertOne(doc);
             console.log(`A document was inserted with the _id: ${result.insertedId}`);
             res.send(result);
@@ -95,7 +90,6 @@ async function run() {
 
         //get single item from a document by id
         app.get('/showCar/:carId', async (req, res) => {
-            console.log('single hit');
             const id = req.params.carId
             const query = { _id: ObjectId(id) };
             const result = await carsCollection.findOne(query);
@@ -104,7 +98,6 @@ async function run() {
 
         //post a review
         app.post('/reviews', async (req, res) => {
-            console.log('post reviews hit');
             const doc = req.body
             const result = await reviewsCollection.insertOne(doc);
             console.log(`A document was inserted with the _id: ${result.insertedId}`);
@@ -113,7 +106,6 @@ async function run() {
 
         //get review
         app.get('/reviews', async (req, res) => {
-            console.log('get reviews hit');
             const query = {}
             const cursor = reviewsCollection.find(query);
             if ((await cursor.count()) === 0) {
@@ -124,7 +116,25 @@ async function run() {
             res.send(result);
         });
 
+        //add booking
+        app.post('/bookings', async (req, res) => {
+            const doc = req.body;
+            const result = await bookingsCollection.insertOne(doc);
+            console.log(`A document was inserted with the _id: ${result.insertedId}`);
+            res.send(result);
+        });
+
+        //get all the bookings
         app.get('/bookings', async (req, res) => {
+            console.log('I am all bookings hit');
+            const query = {}
+            const cursor = bookingsCollection.find(query);
+            const bookings = await cursor.toArray();
+            res.json(bookings);
+        });
+
+        //get only users booking
+        app.get('/bookings/search', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const cursor = bookingsCollection.find(query);
@@ -136,30 +146,46 @@ async function run() {
             res.json(bookings);
         });
 
-        // app.get('/booking/:id', async (req, res) => {
-        //     const id = req.params.id
-        //     const query = { _id: ObjectId(id) };
-        //     const result = await bookingsCollection.findOne(query);
-        //     res.json(result);
-        // });
-
-        // app.delete('/booking/:id', async (req, res) => {
-        //     const id = req.params.id
-        //     const query = { _id: ObjectId(id) };
-        //     const cursor = bookingsCollection.deleteOne({ query });
-        //     const bookings = await cursor.toArray();
-        //     res.json(bookings);
-        // })
-
-        app.post('/bookings', async (req, res) => {
-            const doc = req.body
-            console.log(doc);
-            console.log('bookings hit');
-            const result = await bookingsCollection.insertOne(doc);
-            console.log(`A document was inserted with the _id: ${result.insertedId}`);
-            res.send(result);
+        //get bookings by id
+        app.get('/bookings/find/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const cursor = bookingsCollection.find(query);
+            const bookings = await cursor.toArray();
+            if ((cursor.count()) === 0) {
+                console.log("No documents found!");
+                res.json("No data Found");
+            }
+            res.json(bookings);
         });
 
+        //delete bookings by id
+        app.delete('/bookings/find/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) };
+            const result = await bookingsCollection.deleteOne(query);
+            if (result.deletedCount === 1) {
+                console.log("Successfully deleted one document.");
+            } else {
+                console.log("No documents matched the query. Deleted 0 documents.");
+            }
+        })
+
+        //update booking status
+        app.put('/bookings/find/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: "confirmed"
+                },
+            };
+            const result = await bookingsCollection.updateOne(filter, updateDoc, options);
+            console.log(
+                `${result.matchedCount} document(s) matched the filter, updated ${result.modifiedCount} document(s)`,
+            );
+        })
 
     } finally {
         // await client.close();
@@ -174,3 +200,17 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Server is running on Local Host:${port}`)
 })
+
+
+        //get filtered booking
+        // app.get('/bookings', async (req, res) => {
+        //     const email = req.query.email;
+        //     const query = { email: email }
+        //     const cursor = bookingsCollection.find(query);
+        //     const bookings = await cursor.toArray();
+        //     if ((cursor.count()) === 0) {
+        //         console.log("No documents found!");
+        //         res.json("No data Found");
+        //     }
+        //     res.json(bookings);
+        // });
